@@ -74,16 +74,16 @@ func (cmd DeleteTodo) Call(req DeleteTodoRequest, res response.Sender) {
 	res.Send(response.StatusOK)
 }
 
-type ShowTodo struct {
+type GetTodo struct {
 	service.Todos
 	service.Logger
 }
 
-type ShowTodoRequest struct {
+type GetTodoRequest struct {
 	ID interface{}
 }
 
-func (cmd ShowTodo) Call(req ShowTodoRequest, res response.TodoSender) {
+func (cmd GetTodo) Call(req GetTodoRequest, res response.TodoSender) {
 	todo, err := cmd.Todos.GetByID(req.ID)
 	if err != nil {
 		cmd.Logger.LogError(err)
@@ -98,16 +98,16 @@ func (cmd ShowTodo) Call(req ShowTodoRequest, res response.TodoSender) {
 	}, response.StatusOK)
 }
 
-type ListTodos struct {
+type GetTodoList struct {
 	service.Todos
 	service.Logger
 }
 
-type ListTodosRequest struct {
+type GetTodoListRequest struct {
 	//
 }
 
-func (cmd ListTodos) Call(req ListTodosRequest, res response.TodoListSender) {
+func (cmd GetTodoList) Call(req GetTodoListRequest, res response.TodoListSender) {
 	todoList, err := cmd.Todos.GetList()
 	if err != nil {
 		cmd.Logger.LogError(err)
