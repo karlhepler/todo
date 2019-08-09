@@ -12,6 +12,14 @@ type TodosRepository interface {
 	InsertTodo(label Stringer, isComplete Booler) (Todo, error)
 }
 
+func NewTodo(id interface{}, label string, isComplete bool) Todo {
+	return Todo{id, label, isComplete}
+}
+
+func newEmptyTodo() Todo {
+	return NewTodo(0, "", false)
+}
+
 type Todo struct {
 	id         interface{}
 	label      string
@@ -41,11 +49,9 @@ type Service struct {
 }
 
 func (srv Service) Create(label Stringer) (Todo, error) {
-	const isComplete = false
-
-	todo, err := srv.Repo.InsertTodo(label, BoolBooler(isComplete))
+	todo, err := srv.Repo.InsertTodo(label, BoolBooler(false))
 	if err != nil {
-		return Todo{}, err
+		return newEmptyTodo(), err
 	}
 
 	return todo, nil
