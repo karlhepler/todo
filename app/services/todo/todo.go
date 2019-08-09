@@ -44,12 +44,16 @@ func (b BoolBooler) Bool() bool {
 	return bool(b)
 }
 
-type Service struct {
-	Repo TodosRepository
+func NewService(repo TodosRepository) *Service {
+	return &Service{repo}
 }
 
-func (srv Service) Create(label Stringer) (Todo, error) {
-	todo, err := srv.Repo.InsertTodo(label, BoolBooler(false))
+type Service struct {
+	repo TodosRepository
+}
+
+func (srv *Service) Create(label Stringer) (Todo, error) {
+	todo, err := srv.repo.InsertTodo(label, BoolBooler(false))
 	if err != nil {
 		return newEmptyTodo(), err
 	}
