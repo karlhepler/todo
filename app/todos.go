@@ -31,14 +31,18 @@ type TodoResponseModelSender interface {
 	Send(TodoResponseModel, Status)
 }
 
-type TodosController struct {
-	TodoService *todo.Service
+func NewTodosController(todoService *todo.Service) *TodosController {
+	return &TodosController{todoService}
 }
 
-func (ctrl TodosController) CreateTodo(req CreateTodoRequestModelResolver, res TodoResponseModelSender) {
+type TodosController struct {
+	todoService *todo.Service
+}
+
+func (ctrl *TodosController) CreateTodo(req CreateTodoRequestModelResolver, res TodoResponseModelSender) {
 	model := req.Resolve()
 
-	t, err := ctrl.TodoService.Create(model.Label)
+	t, err := ctrl.todoService.Create(model.Label)
 	if err != nil {
 		res.Send(TodoResponseModel{}, StatusError)
 		return
