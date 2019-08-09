@@ -1,7 +1,9 @@
 package service
 
+import "github.com/oldtimeguitarguy/todo/app/command/service"
+
 type Todos interface {
-	Create(label string) (TodoModel, error)
+	Create(label string) (*service.TodoModel, error)
 	UpdateByID(id interface{}, label string, isComplete bool) (TodoModel, error)
 	DeleteByID(id interface{}) error
 	GetByID(id interface{}) (TodoModel, error)
@@ -10,12 +12,6 @@ type Todos interface {
 
 type Logger interface {
 	LogError(error)
-}
-
-type TodoModel interface {
-	GetID() interface{}
-	GetLabel() string
-	GetIsComplete() bool
 }
 
 type TodoListModel interface {

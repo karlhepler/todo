@@ -11,7 +11,13 @@ type CreateTodo struct {
 }
 
 type CreateTodoRequest struct {
-	Label string
+	Label StringLabeler
+}
+
+type StringLabeler string
+
+func (s StringLabeler) Label() string {
+	return string(s)
 }
 
 func (cmd CreateTodo) Call(req CreateTodoRequest, res response.TodoSender) {
