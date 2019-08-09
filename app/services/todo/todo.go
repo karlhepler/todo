@@ -38,9 +38,9 @@ func (t Todo) GetIsComplete() bool {
 	return t.isComplete
 }
 
-type BoolBooler bool
+type Bool bool
 
-func (b BoolBooler) Bool() bool {
+func (b Bool) Bool() bool {
 	return bool(b)
 }
 
@@ -53,7 +53,7 @@ type Service struct {
 }
 
 func (srv *Service) Create(label Stringer) (Todo, error) {
-	todo, err := srv.repo.InsertTodo(label, BoolBooler(false))
+	todo, err := srv.repo.InsertTodo(label, Bool(false))
 	if err != nil {
 		return newEmptyTodo(), err
 	}
