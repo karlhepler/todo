@@ -1,98 +1,132 @@
 package app
 
-type Stringer interface {
-	String() string
-}
-
-type String string
-
-func (s String) String() string {
-	return string(s)
-}
-
-type Status interface {
-	Stringer
-	Code() uint8
-}
-
-type status uint8
-
-func (s status) Code() uint8 {
-	return uint8(s)
-}
-
-func (s status) String() string {
-	switch s {
-	case StatusOK:
-		return "OK"
-	case StatusError:
-		return "Error"
-	case StatusCreated:
-		return "Created"
-	}
-	return "N/A"
-}
+type Status = uint8
 
 const (
-	StatusOK status = iota
+	StatusOK Status = iota
 	StatusError
 	StatusCreated
+	StatusNotFound
 )
 
-type CreateTodoRequestModelResolver interface {
-	Resolve() CreateTodoRequestModel
+type TodoResponseSender interface {
+	Send(TodoResponse, Status)
 }
 
-type TodoResponseModelSender interface {
-	Send(TodoResponseModel, Status)
+type StatusSender interface {
+	Send(Status)
 }
 
-type TodoResponseModel struct {
-	id         interface{}
-	label      string
-	isComplete bool
+// TodoResponse is basically a method filter for TodoModel.
+// It cannot have any DIFFERENT methods, but can leave some methods out.
+type TodoResponse interface {
+	GetID() interface{}
+	GetLabel() string
+	GetIsComplete() bool
 }
 
-func (m TodoResponseModel) GetID() interface{} {
-	return m.id
-}
-
-func (m TodoResponseModel) GetLabel() string {
-	return m.label
-}
-
-func (m TodoResponseModel) GetIsComplete() bool {
-	return m.isComplete
-}
-
-func NewCreateTodoRequestModel(label Stringer) CreateTodoRequestModel {
-	return CreateTodoRequestModel{label.String()}
-}
-
-type CreateTodoRequestModel struct {
-	label string
+// TodoModel is what is returned from the service.
+type TodoModel interface {
+	GetID() interface{}
+	GetLabel() string
+	SetLabel(string)
+	GetIsComplete() bool
+	SetIsComplete(bool)
+	Save() error
 }
 
 type TodoService interface {
-	Create(label Stringer) (TodoResponseModel, error)
+	Create(label string) (TodoModel, error)
+	GetByID(id interface{}) (TodoModel, error)
+	DeleteByID(id interface{}) error
 }
 
-func NewTodoController(todoService TodoService) TodoController {
-	return TodoController{todoService}
+type LoggerService interface {
+	LogError(error)
+}
+
+func NewTodoController(todoService TodoService, loggerService LoggerService) *TodoController {
+	return &TodoController{todoService, loggerService}
 }
 
 type TodoController struct {
-	todoService TodoService
+	todoService   TodoService
+	loggerService LoggerService
 }
 
-func (ctrl TodoController) CreateTodo(req CreateTodoRequestModelResolver, res TodoResponseModelSender) {
-	model := req.Resolve()
+type CreateTodoRequest interface {
+	Label() string
+}
 
-	status := StatusCreated
-	todo, err := ctrl.todoService.Create(String(model.label))
+func (ctrl *TodoController) CreateTodo(req CreateTodoRequest, res TodoResponseSender) {
+	todo, err := ctrl.todoService.Create(req.Label())
 	if err != nil {
-		status = StatusError
+		ctrl.loggerService.LogError(err)
+		res.Send(nil, StatusError)
+		return
 	}
 
-	res.Send(todo, status)
+	res.Send(todo, StatusCreated)
+}
+
+type GetTodoRequest interface {
+	ID() interface{}
+}
+
+func (ctrl *TodoController) GetTodo(req GetTodoRequest, res TodoResponseSender) {
+	todo, err := ctrl.todoService.GetByID(req.ID())
+	if err != nil {
+		ctrl.loggerService.LogError(err)
+		res.Send(nil, StatusError)
+		return
+	} else if todo == nil {
+		res.Send(nil, StatusNotFound)
+		return
+	}
+
+	res.Send(todo, StatusOK)
+}
+
+type DeleteTodoRequest interface {
+	ID() interface{}
+}
+
+func (ctrl *TodoController) DeleteTodo(req DeleteTodoRequest, res StatusSender) {
+	err := ctrl.todoService.DeleteByID(req.ID())
+	if err != nil {
+		ctrl.loggerService.LogError(err)
+		res.Send(StatusError)
+		return
+	}
+
+	res.Send(StatusOK)
+}
+
+type UpdateTodoRequest interface {
+	ID() interface{}
+	Label() string
+	IsComplete() bool
+}
+
+func (ctrl *TodoController) UpdateTodo(req UpdateTodoRequest, res TodoResponseSender) {
+	todo, err := ctrl.todoService.GetByID(req.ID())
+	if err != nil {
+		ctrl.loggerService.LogError(err)
+		res.Send(nil, StatusError)
+		return
+	} else if todo == nil {
+		res.Send(nil, StatusNotFound)
+		return
+	}
+
+	todo.SetLabel(req.Label())
+	todo.SetIsComplete(req.IsComplete())
+
+	if err = todo.Save(); err != nil {
+		ctrl.loggerService.LogError(err)
+		res.Send(nil, StatusError)
+		return
+	}
+
+	res.Send(todo, StatusOK)
 }

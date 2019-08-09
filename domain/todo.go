@@ -1,77 +1,36 @@
 package domain
 
-type Stringer interface {
-	String() string
-}
-
-type Booler interface {
-	Bool() bool
-}
-
-type Todo interface {
+type TodoModel interface {
 	GetID() interface{}
 	GetLabel() string
+	SetLabel(string)
 	GetIsComplete() bool
+	SetIsComplete(bool)
+	Save() error
 }
 
-type TodoModel struct {
-	id         interface{}
-	label      string
-	isComplete bool
-}
-
-func (m TodoModel) GetID() interface{} {
-	return m.id
-}
-
-func (m TodoModel) GetLabel() string {
-	return m.label
-}
-
-func (m TodoModel) GetIsComplete() bool {
-	return m.isComplete
-}
-
-type TodosRepository interface {
-	Save(Todo) error
+type TodoRepository interface {
 	DeleteByID(interface{}) error
 	GetByID(interface{}) (TodoModel, error)
+	Create(label string, isComplete bool) (TodoModel, error)
 }
 
-func NewTodoService(todosRepo TodosRepository) TodoService {
-	return TodoService{todosRepo}
+func NewTodoService(todoRepository TodoRepository) *TodoService {
+	return &TodoService{todoRepository}
 }
 
 type TodoService struct {
-	todosRepo TodosRepository
+	todoRepository TodoRepository
 }
 
-func (s TodoService) Create(label Stringer) (TodoModel, error) {
-	todoModel := TodoModel{label: label.String()}
-
-	if err := s.todosRepo.Save(todoModel); err != nil {
-		return TodoModel{}, err
-	}
-
-	return todoModel, nil
+func (srv *TodoService) Create(label string) (TodoModel, error) {
+	return srv.todoRepository.Create(label, false)
 }
 
-func (s TodoService) Update(todo Todo) (TodoModel, error) {
-	if err := s.todosRepo.Save(todo); err != nil {
-		return TodoModel{}, err
-	}
-
-	return TodoModel{
-		id:         todo.GetID(),
-		label:      todo.GetLabel(),
-		isComplete: todo.GetIsComplete(),
-	}, nil
+func (srv *TodoService) GetByID(id interface{}) (TodoModel, error) {
+	return srv.todoRepository.GetByID(id)
 }
 
-func (s TodoService) GetByID(id interface{}) (TodoModel, error) {
-	return s.todosRepo.GetByID(id)
-}
-
-func (s TodoService) DeleteByID(id interface{}) error {
-	return s.todosRepo.DeleteByID(id)
+func (srv *TodoService) DeleteByID(id interface{}) error {
+	return srv.todoRepository.DeleteByID(id)
 }
