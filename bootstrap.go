@@ -34,10 +34,8 @@ func init() {
 		Log: log.New(os.Stderr, "", log.LstdFlags),
 	}
 	todoRepo := &repo.SQLiteDriver{DB: db}
-	todoFactory := &todo.TodoFactory{}
 	todoService := &todo.TodoService{
 		TodoRepository: todoRepo,
-		TodoFactory:    todoFactory,
 	}
 
 	// setup controller
