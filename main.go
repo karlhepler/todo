@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -12,6 +13,7 @@ import (
 )
 
 var db *sql.DB
+var todosController *TodosController
 
 func main() {
 	// Database
@@ -30,6 +32,12 @@ func main() {
 		return
 	}
 
+	// setup controller
+	todosController = &TodosController{
+		Log: log.New(os.Stderr, "", log.LstdFlags),
+		DB:  db,
+	}
+
 	// Router
 	router := httprouter.New()
 
@@ -40,23 +48,26 @@ func main() {
 }
 
 func createTodoHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	tw := todoWriter{res: w}
-	createTodo(tw, r.FormValue("label"))
+	tw := todoWriter{Res: w, MarshalJSON: json.Marshal}
+	todosController.CreateTodo(tw, r.FormValue("label"))
 }
 
+type MarshalJSON func(v interface{}) ([]byte, error)
+
 type todoWriter struct {
-	res http.ResponseWriter
+	MarshalJSON MarshalJSON
+	Res         http.ResponseWriter
 }
 
 func (w todoWriter) Write(todo Todo, status Status) {
-	w.res.Header().Set("Content-Type", "application/json")
+	w.Res.Header().Set("Content-Type", "application/json")
 
-	jsonData, err := json.Marshal(todo)
+	jsonData, err := w.MarshalJSON(todo)
 	if err != nil {
 		log.Print("ERROR: " + err.Error())
-		w.res.WriteHeader(500)
+		w.Res.WriteHeader(500)
 		jsonData = []byte("{\"ERROR\":500}")
 	}
 
-	w.res.Write(jsonData)
+	w.Res.Write(jsonData)
 }

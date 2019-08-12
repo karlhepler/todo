@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 )
 
@@ -22,22 +23,27 @@ type TodoWriter interface {
 	Write(Todo, Status)
 }
 
-func createTodo(w TodoWriter, label string) {
+type TodosController struct {
+	Log *log.Logger
+	DB  *sql.DB
+}
+
+func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
 	// Make the todo
 	todo := Todo{
 		Label:      label,
 		IsComplete: false,
 	}
 
-	tx, err := db.Begin()
+	tx, err := ctrl.DB.Begin()
 	if err != nil {
-		log.Print("ERROR: " + err.Error())
+		ctrl.Log.Print("ERROR: " + err.Error())
 		w.Write(todo, StatusError)
 		return
 	}
 	stmt, err := tx.Prepare("insert into todos(label, is_complete) values(?,?)")
 	if err != nil {
-		log.Print("ERROR: " + err.Error())
+		ctrl.Log.Print("ERROR: " + err.Error())
 		w.Write(todo, StatusError)
 		return
 	}
@@ -45,14 +51,14 @@ func createTodo(w TodoWriter, label string) {
 
 	rowsAffected, err := stmt.Exec(todo.Label, todo.IsComplete)
 	if err != nil {
-		log.Print("ERROR: " + err.Error())
+		ctrl.Log.Print("ERROR: " + err.Error())
 		w.Write(todo, StatusError)
 		return
 	}
 
 	id, err := rowsAffected.LastInsertId()
 	if err != nil {
-		log.Print("ERROR: " + err.Error())
+		ctrl.Log.Print("ERROR: " + err.Error())
 		w.Write(todo, StatusError)
 		return
 	}
