@@ -8,12 +8,13 @@ import (
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/oldtimeguitarguy/todo/todo"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 var db *sql.DB
-var todosController *TodosController
+var todosController *todo.TodosController
 
 func main() {
 	// Database
@@ -33,7 +34,7 @@ func main() {
 	}
 
 	// setup controller
-	todosController = &TodosController{
+	todosController = &todo.TodosController{
 		Logger: &MyLogger{
 			Log: log.New(os.Stderr, "", log.LstdFlags),
 		},
@@ -61,7 +62,7 @@ type todoWriter struct {
 	Res         http.ResponseWriter
 }
 
-func (w todoWriter) Write(todo Todo, status Status) {
+func (w todoWriter) Write(todo todo.Todo, status todo.Status) {
 	w.Res.Header().Set("Content-Type", "application/json")
 
 	jsonData, err := w.MarshalJSON(todo)

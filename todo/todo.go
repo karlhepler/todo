@@ -1,4 +1,4 @@
-package main
+package todo
 
 type Status uint8
 
