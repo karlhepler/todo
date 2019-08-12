@@ -26,15 +26,22 @@ type Logger interface {
 	LogError(error)
 }
 
+func NewTodosController(logger Logger, todoRepository TodoRepository) *TodosController {
+	return &TodosController{
+		logger,
+		todoService{todoRepository},
+	}
+}
+
 type TodosController struct {
-	Logger
-	*TodoService
+	logger      Logger
+	todoService todoService
 }
 
 func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
-	todo, err := ctrl.TodoService.CreateTodo(label)
+	todo, err := ctrl.todoService.createTodo(label)
 	if err != nil {
-		ctrl.Logger.LogError(err)
+		ctrl.logger.LogError(err)
 		w.Write(todo, StatusError)
 		return
 	}

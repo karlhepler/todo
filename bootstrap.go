@@ -29,18 +29,12 @@ func init() {
 		return
 	}
 
-	// Init drivers
+	// Init gateway drivers
 	l := &logger.MyLogger{
 		Log: log.New(os.Stderr, "", log.LstdFlags),
 	}
 	todoRepo := &repo.SQLiteDriver{DB: db}
-	todoService := &todo.TodoService{
-		TodoRepository: todoRepo,
-	}
 
 	// setup controller
-	todosController = &todo.TodosController{
-		Logger:      l,
-		TodoService: todoService,
-	}
+	todosController = todo.NewTodosController(l, todoRepo)
 }

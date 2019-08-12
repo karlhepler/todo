@@ -1,13 +1,13 @@
 package todo
 
-type TodoService struct {
-	TodoRepository
+type todoService struct {
+	todoRepository TodoRepository
 }
 
-func (s TodoService) CreateTodo(label string) (Todo, error) {
+func (s todoService) createTodo(label string) (Todo, error) {
 	todo := Todo{Label: label, IsComplete: false}
 
-	id, err := s.TodoRepository.Insert(todo.Label, todo.IsComplete)
+	id, err := s.todoRepository.Insert(todo.Label, todo.IsComplete)
 	if err != nil {
 		return todo, err
 	}
