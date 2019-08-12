@@ -33,12 +33,21 @@ func main() {
 		return
 	}
 
+	// Init drivers
+	logger := &MyLogger{
+		Log: log.New(os.Stderr, "", log.LstdFlags),
+	}
+	todoRepo := &SQLiteDriver{DB: db}
+	todoFactory := &todo.TodoFactory{}
+	todoService := &todo.TodoService{
+		TodoRepository: todoRepo,
+		TodoFactory:    todoFactory,
+	}
+
 	// setup controller
 	todosController = &todo.TodosController{
-		Logger: &MyLogger{
-			Log: log.New(os.Stderr, "", log.LstdFlags),
-		},
-		TodoRepository: &SQLiteDriver{DB: db},
+		Logger:      logger,
+		TodoService: todoService,
 	}
 
 	// Router

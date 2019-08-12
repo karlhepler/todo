@@ -28,25 +28,16 @@ type Logger interface {
 
 type TodosController struct {
 	Logger
-	TodoRepository
+	*TodoService
 }
 
 func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
-	// Make the todo
-	todo := Todo{
-		Label:      label,
-		IsComplete: false,
-	}
-
-	id, err := ctrl.Insert(todo.Label, todo.IsComplete)
+	todo, err := ctrl.TodoService.CreateTodo(label)
 	if err != nil {
 		ctrl.Logger.LogError(err)
 		w.Write(todo, StatusError)
 		return
 	}
-
-	// Set the id
-	todo.ID = id
 
 	w.Write(todo, StatusCreated)
 }
