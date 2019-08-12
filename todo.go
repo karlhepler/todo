@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 type Status uint8
 
 const (
@@ -26,8 +22,12 @@ type TodoRepository interface {
 	Insert(label string, isComplete bool) (interface{}, error)
 }
 
+type Logger interface {
+	LogError(error)
+}
+
 type TodosController struct {
-	Log *log.Logger
+	Logger
 	TodoRepository
 }
 
@@ -40,6 +40,7 @@ func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
 
 	id, err := ctrl.Insert(todo.Label, todo.IsComplete)
 	if err != nil {
+		ctrl.Logger.LogError(err)
 		w.Write(todo, StatusError)
 		return
 	}

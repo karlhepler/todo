@@ -34,7 +34,9 @@ func main() {
 
 	// setup controller
 	todosController = &TodosController{
-		Log:            log.New(os.Stderr, "", log.LstdFlags),
+		Logger: &MyLogger{
+			Log: log.New(os.Stderr, "", log.LstdFlags),
+		},
 		TodoRepository: &SQLiteDriver{DB: db},
 	}
 
