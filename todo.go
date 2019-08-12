@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 )
 
@@ -23,9 +22,13 @@ type TodoWriter interface {
 	Write(Todo, Status)
 }
 
+type TodoRepository interface {
+	Insert(label string, isComplete bool) (interface{}, error)
+}
+
 type TodosController struct {
 	Log *log.Logger
-	DB  *sql.DB
+	TodoRepository
 }
 
 func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
@@ -35,35 +38,11 @@ func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
 		IsComplete: false,
 	}
 
-	tx, err := ctrl.DB.Begin()
+	id, err := ctrl.Insert(todo.Label, todo.IsComplete)
 	if err != nil {
-		ctrl.Log.Print("ERROR: " + err.Error())
 		w.Write(todo, StatusError)
 		return
 	}
-	stmt, err := tx.Prepare("insert into todos(label, is_complete) values(?,?)")
-	if err != nil {
-		ctrl.Log.Print("ERROR: " + err.Error())
-		w.Write(todo, StatusError)
-		return
-	}
-	defer stmt.Close()
-
-	rowsAffected, err := stmt.Exec(todo.Label, todo.IsComplete)
-	if err != nil {
-		ctrl.Log.Print("ERROR: " + err.Error())
-		w.Write(todo, StatusError)
-		return
-	}
-
-	id, err := rowsAffected.LastInsertId()
-	if err != nil {
-		ctrl.Log.Print("ERROR: " + err.Error())
-		w.Write(todo, StatusError)
-		return
-	}
-
-	tx.Commit()
 
 	// Set the id
 	todo.ID = id

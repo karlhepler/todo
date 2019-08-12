@@ -34,8 +34,8 @@ func main() {
 
 	// setup controller
 	todosController = &TodosController{
-		Log: log.New(os.Stderr, "", log.LstdFlags),
-		DB:  db,
+		Log:            log.New(os.Stderr, "", log.LstdFlags),
+		TodoRepository: &SQLiteDriver{DB: db},
 	}
 
 	// Router
