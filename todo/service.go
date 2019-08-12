@@ -17,3 +17,7 @@ func (s todoService) createTodo(label string) (Todo, error) {
 
 	return todo, nil
 }
+
+func (s todoService) getTodoList() ([]Todo, error) {
+	// TODO FINISH ME
+}

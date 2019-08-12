@@ -18,6 +18,10 @@ type TodoWriter interface {
 	Write(Todo, Status)
 }
 
+type TodoListWriter interface {
+	Write([]Todo, Status)
+}
+
 type TodoRepository interface {
 	Insert(label string, isComplete bool) (interface{}, error)
 }
@@ -47,4 +51,15 @@ func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
 	}
 
 	w.Write(todo, StatusCreated)
+}
+
+func (ctrl TodosController) ListTodos(w TodoListWriter) {
+	todos, err := ctrl.todoService.getTodoList()
+	if err != nil {
+		ctrl.logger.LogError(err)
+		w.Write(todos, StatusError)
+		return
+	}
+
+	w.Write(todos, StatusOK)
 }
