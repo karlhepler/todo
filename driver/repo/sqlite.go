@@ -31,3 +31,8 @@ func (d SQLiteDriver) Insert(label string, isComplete bool) (interface{}, error)
 
 	return lastInsertID, nil
 }
+
+func (d SQLiteDriver) GetByID(id interface{}, label *string, isComplete *bool) error {
+	row := d.DB.QueryRow("select label, is_complete from todos where id=?", id)
+	return row.Scan(label, isComplete)
+}

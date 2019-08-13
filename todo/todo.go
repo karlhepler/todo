@@ -6,6 +6,7 @@ const (
 	StatusOK Status = iota
 	StatusError
 	StatusCreated
+	StatusNotFound
 )
 
 type Todo struct {
@@ -18,12 +19,9 @@ type TodoWriter interface {
 	Write(Todo, Status)
 }
 
-type TodoListWriter interface {
-	Write([]Todo, Status)
-}
-
 type TodoRepository interface {
 	Insert(label string, isComplete bool) (interface{}, error)
+	GetByID(id interface{}, label *string, isComplete *bool) error
 }
 
 type Logger interface {
@@ -53,13 +51,13 @@ func (ctrl TodosController) CreateTodo(w TodoWriter, label string) {
 	w.Write(todo, StatusCreated)
 }
 
-func (ctrl TodosController) ListTodos(w TodoListWriter) {
-	todos, err := ctrl.todoService.getTodoList()
+func (ctrl TodosController) GetTodoByID(w TodoWriter, id interface{}) {
+	todo, err := ctrl.todoService.getTodoByID(id)
 	if err != nil {
 		ctrl.logger.LogError(err)
-		w.Write(todos, StatusError)
+		w.Write(todo, StatusError)
 		return
 	}
 
-	w.Write(todos, StatusOK)
+	w.Write(todo, StatusOK)
 }

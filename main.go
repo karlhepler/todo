@@ -14,6 +14,7 @@ func main() {
 	router := httprouter.New()
 
 	router.POST("/todos", createTodoHandler)
+	router.GET("/todos/:id", showTodoHandler)
 
 	// Server
 	log.Fatal(http.ListenAndServe(":8080", router))
